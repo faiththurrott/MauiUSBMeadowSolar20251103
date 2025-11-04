@@ -25,9 +25,9 @@ namespace MauiUSBMeadowSolar20251103
         private bool bPortOpen = false;
         private bool sendDataOk;
         private string newPacket;
-        private int newPacketNumber;
+        //private int newPacketNumber;
         private int oldPackNumber = -1;
-        private int newPackNumber = 0;
+        private int newPacketNumber = 0;
         private int lostPacketCount = 0;
         private int packetRollover = 0;
         private int chkSumError = 0;
@@ -136,14 +136,14 @@ namespace MauiUSBMeadowSolar20251103
                             packetRollover++;
                             if (oldPackNumber != 999)
                             {
-                                lostPacketCount += 999 - oldPackNumber + newPackNumber;
+                                lostPacketCount += 999 - oldPackNumber + newPacketNumber;
                             }
                         }
                         else
                         {
                             if (newPacketNumber != oldPackNumber + 1)
                             {
-                                lostPacketCount += newPackNumber - oldPackNumber;
+                                lostPacketCount += newPacketNumber - oldPackNumber - 1;
                             }
                         }
                     }
@@ -178,11 +178,10 @@ namespace MauiUSBMeadowSolar20251103
                         $"{newPacket.Substring(26, 4),-14}" +
                         $"{newPacket.Substring(30, 4),-14}" +
                         $"{newPacket.Substring(34, 3),-14}" +   // FIX: 3 chars, not 4
-                        $"{calChkSum,-14}\r\n" +
+                        $"{calChkSum,-14}" +
                         $"{lostPacketCount,-14}" +
                         $"{chkSumError,-14}" +
                         $"{packetRollover}\r\n";
-
 
                     if (checkBoxParsedHistory.IsChecked)
                     {

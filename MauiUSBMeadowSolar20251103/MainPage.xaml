@@ -79,7 +79,7 @@
             <Label
                 x:Name="lblMessage"/>
             <Label
-                Text="Length    Header    Number    Analog0    Analog1    Analog2    Analog3   Analog4    Analog5    Binary    CkSumRxCal   ChkError   Rollover"
+                Text="Length    Header    Number    Analog0    Analog1    Analog2    Analog3   Analog4    Analog5    Binary    CkSumRx CkSumCal lost   ChkError   Rollover"
                 x:Name="parseTitle"/>
             <Label 
                 x:Name="LabelParsedData"
