@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Text;
 
 
-namespace MauiUSBMeadowSolar20251103
+namespace MauiUSBMeadowSolar20251103 // updated name
 {
     public partial class MainPage : ContentPage // container for code file
     {
