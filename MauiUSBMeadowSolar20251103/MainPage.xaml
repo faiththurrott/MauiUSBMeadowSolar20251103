@@ -1,0 +1,91 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiUSBMeadowSolar20251103.MainPage">
+
+    <HorizontalStackLayout
+       Spacing="25"
+       Padding="20,10,0,0"
+       VerticalOptions="StartAndExpand">
+        <VerticalStackLayout>
+            <HorizontalStackLayout>
+                <Button
+                    x:Name="btnOpenClose"
+                    Text="Open"
+                    SemanticProperties.Hint="Open comport"
+                    Clicked="btnOpenClose_Clicked"/>
+                <Button
+                    x:Name="btnClear"
+                    Text="Clear"
+                    SemanticProperties.Hint="Clear serial data"
+                    Clicked="btnClear_Clicked"/>
+                <!--Picker
+                    x:Name="portPicker"
+                    Title="Select comPort"
+                    HorizontalOptions="Center"/-->
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+        <VerticalStackLayout>
+            <HorizontalStackLayout>
+                <Button
+                    x:Name="btnSend"
+                    Text="Send"
+                    Clicked="btnSend_Clicked"
+                    HorizontalOptions="Center"/>
+                <Entry
+                    x:Name="entrySend"
+                    Text="###111196"
+                    HorizontalOptions="Center"/>
+            </HorizontalStackLayout>
+            <HorizontalStackLayout>
+                <Label
+                    Text="Received Packet"
+                    HorizontalOptions="Center"/>
+                <CheckBox
+                    x:Name="checkBoxHistory"
+                    IsChecked="False"
+                    HorizontalOptions="Center"/>
+                <Label
+                    Padding="50,0,0,0"
+                    Text="Parsed Packet History"/>
+                <CheckBox
+                    x:Name="checkBoxParsedHistory"
+                    IsChecked="False"
+                    HorizontalOptions="Center"/>
+                <Label
+                    x:Name="lblConnected"
+                    Padding="50,0,0,0"/>
+                <Label 
+                    Text="Device Index"/>
+                <!--Entry
+                    x:Name="DeviceIndex"
+                    Text="0"
+                    TextChanged="DeviceIndex_TextChanged"/-->
+            </HorizontalStackLayout>
+            <Label
+                    x:Name="DeviceListLabel"
+                    Text="Device List"/>
+            <Label
+                    Text="Received Packet"/>
+            <Entry
+                x:Name="LabelRXdata"
+                Text="Received Packet"
+                MinimumWidthRequest="310"/>
+            <ScrollView
+                x:Name="scrollViewRecData"
+                MaximumHeightRequest="500"
+                VerticalOptions="StartAndExpand"/>
+
+            <Label
+                x:Name="lblMessage"/>
+            <Label
+                Text="Length    Header    Number    Analog0    Analog1    Analog2    Analog3   Analog4    Analog5    Binary    CkSumRxCal   ChkError   Rollover"
+                x:Name="parseTitle"/>
+            <Label 
+                x:Name="LabelParsedData"
+                Text="Parsed Packet"
+                MinimumWidthRequest="310"/>
+        </VerticalStackLayout>
+
+    </HorizontalStackLayout>
+</ContentPage>
