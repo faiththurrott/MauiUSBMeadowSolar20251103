@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
@@ -31,6 +32,10 @@ namespace MauiUSBMeadowSolar20251103
         private int lostPacketCount = 0;
         private int packetRollover = 0;
         private int chkSumError = 0;
+
+        //SerialPort serialPort = new SerialPort();
+        StringBuilder stringBuilderSend = new StringBuilder("###1111196");
+
 
         public MainPage()
         {
@@ -344,6 +349,75 @@ namespace MauiUSBMeadowSolar20251103
         private void DeviceIndex_TextChanged(object sender, TextChangedEventArgs e)
         {
             // not implemented.
+        }
+
+        private void btnBit3_Clicked(object sender, EventArgs e)
+        {
+            ButtonClicked(3);
+        }
+
+        private void btnBit2_Clicked(object sender, EventArgs e)
+        {
+            ButtonClicked(2);
+        }
+
+        private void btnBit1_Clicked(object sender, EventArgs e)
+        {
+            ButtonClicked(1);
+        }
+
+        private void btnBit0_Clicked(object sender, EventArgs e)
+        {
+            ButtonClicked(0);
+        }
+
+        private void ButtonClicked(int i)
+        {
+            Button[] btnBit = new Button[] { btnBit0, btnBit1, btnBit2, btnBit3 };
+            if (btnBit[i].Text== "0")
+            {
+                btnBit[i].Text = "1";
+                stringBuilderSend[i + 3] = '1';
+            }
+            else
+            {
+                btnBit[i].Text = "0";
+                stringBuilderSend[i + 3] = '0';
+            }
+            SendPacket();
+        }
+
+        private void SendPacket()
+        {
+            int calSendChkSum = 0;
+            try
+            {
+                string messageOut = stringBuilderSend.ToString();
+                for (int i = 3; i <7; i++)
+                {
+                    calSendChkSum += (byte)stringBuilderSend[i];
+                }
+                calSendChkSum %= 1000;
+                stringBuilderSend.Remove(7, 3);
+                stringBuilderSend.Insert(7, calSendChkSum.ToString());
+                string messageOut = stringBuilderSend.ToString();
+                entrySend.Text = stringBuilderSend.ToString(); ;
+                messageOut += "\r\n";
+                byte[] messageBytes = Encoding.ASCII.GetBytes(messageOut);
+
+                // Note that the Write method is overloaded, so can write string or byte array data
+                ftStatus = myFtdiDevice.Write(messageBytes, messageBytes.Length, ref numBytesWritten);
+                if (ftStatus != FTDI.FT_STATUS.FT_OK)
+                {
+                    // Wait for a key press
+                    Trace.WriteLine("Failed to write to device (error " + ftStatus.ToString() + ")");
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine(ex.Message);
+            }
         }
     }
 }

@@ -19,11 +19,48 @@
                     Text="Clear"
                     SemanticProperties.Hint="Clear serial data"
                     Clicked="btnClear_Clicked"/>
-                <!--Picker
+                <Picker
                     x:Name="portPicker"
                     Title="Select comPort"
-                    HorizontalOptions="Center"/-->
+                    HorizontalOptions="Center"/>
             </HorizontalStackLayout>
+            <HorizontalStackLayout>
+                <Label
+                   Text="Bits"
+                    FontSize="Medium"/>
+                <Button x:Name="btnBit0" Text="1" FontSize="Medium" Clicked="btnBit0_Clicked"/>
+                <Button x:Name="btnBit1" Text="1" FontSize="Medium" Clicked="btnBit1_Clicked"/>
+                <Button x:Name="btnBit2" Text="1" FontSize="Medium" Clicked="btnBit2_Clicked"/>
+                <Button x:Name="btnBit3" Text="1" FontSize="Medium" Clicked="btnBit3_Clicked"/>
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+        <VerticalStackLayout>
+            <Label
+                Text="Solar Voltage"/>
+            <Label
+                x:Name="labelSolarVolt"
+                MinimumWidthRequest="100"/>
+            <Label
+                Text="Battery Voltage"/>
+            <Label
+                x:Name="labelBatteryVolt"
+                MinimumWidthRequest="100"/>
+            <Label
+                Text="Battery Current"/>
+            <Label
+                x:Name="labelBatteryCurrent"
+                MinimumWidthRequest="100"/>
+            <Label
+                Text="LED 1 Current"/>
+            <Label
+                x:Name="labelLED1Current"
+                MinimumWidthRequest="100"/>
+            <Label
+                Text="LED 2 Current"/>
+            <Label
+                x:Name="labelLED2Current"
+                MinimumWidthRequest="100"/>
+
         </VerticalStackLayout>
         <VerticalStackLayout>
             <HorizontalStackLayout>
