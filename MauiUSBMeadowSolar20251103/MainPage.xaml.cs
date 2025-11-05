@@ -198,7 +198,8 @@ namespace MauiUSBMeadowSolar20251103
 
         private void DisplaySolarData(string validPacket)
         {
-            MainThread.BeginInvokeOnMainThread(() =>
+            // run on UI thread
+            Dispatcher.Dispatch(() =>
             {
                 solarCalc.ParseSolarData(validPacket);
 
@@ -208,7 +209,6 @@ namespace MauiUSBMeadowSolar20251103
                 labelLED1Current.Text = solarCalc.GetLed1CurrentText();
                 labelLED2Current.Text = solarCalc.GetLed2CurrentText();
             });
-
         }
 
         private void SetupFTDIdeviceByAutoSerialNumber()
