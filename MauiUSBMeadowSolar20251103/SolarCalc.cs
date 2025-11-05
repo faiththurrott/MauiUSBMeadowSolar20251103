@@ -53,7 +53,7 @@ namespace MauiUSBMeadowSolar20251103
             float vA1 = AnalogVoltage[1] / 1000f;
             float vA2 = AnalogVoltage[2] / 1000f;
             float iA = (vA1 - vA2) / R_BATT;
-            return (iA * 1000f).ToString("0.0") + " mA";
+            return (iA * 1000f).ToString("0.00") + " mA";
         }
 
         public string GetLed1CurrentText()
@@ -61,7 +61,7 @@ namespace MauiUSBMeadowSolar20251103
             float vA1 = AnalogVoltage[1] / 1000f;
             float vA4 = AnalogVoltage[4] / 1000f;
             float iA = (vA1 - vA4) / R_LED1;
-            return (iA * 1000f).ToString("0.0") + " mA";
+            return (iA * 1000f).ToString("0.00") + " mA";
         }
 
         public string GetLed2CurrentText()
@@ -69,7 +69,7 @@ namespace MauiUSBMeadowSolar20251103
             float vA1 = AnalogVoltage[1] / 1000f;
             float vA3 = AnalogVoltage[3] / 1000f;
             float iA = (vA1 - vA3) / R_LED2;
-            return (iA * 1000f).ToString("0.0") + " mA";
+            return (iA * 1000f).ToString("0.00") + " mA";
         }
     }
 }
