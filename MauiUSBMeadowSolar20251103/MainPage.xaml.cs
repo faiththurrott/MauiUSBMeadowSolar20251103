@@ -119,100 +119,95 @@ namespace MauiUSBMeadowSolar20251103
 
         private void ParseNewPacket()
         {
-            if (newPacket.Substring(0, 3) == "###")
+            // basic sanity
+            if (string.IsNullOrEmpty(newPacket))
+                return;
+            if (newPacket.Length < 37)
+                return;
+            if (!newPacket.StartsWith("###"))
+                return;
+
+            // 1) checksum once
+            int calcChk = 0;
+            for (int i = 3; i < 34; i++)
             {
-                int calChkSum = 0;
-                newPacketNumber = Convert.ToInt32(newPacket.Substring(3, 3));
-                for (int i = 3; i < 34; i++)
+                calcChk += (byte)newPacket[i];
+            }
+            calcChk %= 1000;
+
+            int recvChk = Convert.ToInt32(newPacket.Substring(34, 3));
+
+            if (calcChk != recvChk)
+            {
+                chkSumError++;
+                Trace.WriteLine("Checksum error");
+                return;
+            }
+
+            // 2) packet number / lost packet tracking
+            newPacketNumber = Convert.ToInt32(newPacket.Substring(3, 3));
+
+            if (oldPackNumber > -1)
+            {
+                if (newPacketNumber < oldPackNumber)
                 {
-                    calChkSum += (byte)newPacket[i];
-                }
-                calChkSum %= 1000;
-                int recChkSum = Convert.ToInt32(newPacket.Substring(34, 3));
-                if (calChkSum == recChkSum)
-                {
-
-                    newPacketNumber = Convert.ToInt32(newPacket.Substring(3, 3));
-
-
-                    if (oldPackNumber > -1)
+                    // rollover
+                    packetRollover++;
+                    if (oldPackNumber != 999)
                     {
-                        if (newPacketNumber < oldPackNumber)
-                        {
-                            packetRollover++;
-                            if (oldPackNumber != 999)
-                            {
-                                lostPacketCount += 999 - oldPackNumber + newPacketNumber;
-                            }
-                        }
-                        else
-                        {
-                            if (newPacketNumber != oldPackNumber + 1)
-                            {
-                                lostPacketCount += newPacketNumber - oldPackNumber - 1;
-                            }
-                        }
-                    }
-                    for (int i = 3; i < 34; i++)
-                    {
-                        calChkSum += (byte)newPacket[i];
-                    }
-                    calChkSum %= 1000;
-                    recChkSum = Convert.ToInt32(newPacket.Substring(34, 3));
-                    if (recChkSum == calChkSum)
-                    {
-                        DisplaySolarData(newPacket);
-                        oldPackNumber = newPacketNumber;
-                    }
-                    else
-                    {
-                        chkSumError++;
-                    }
-
-                    Trace.WriteLine("Packet number: " + newPacketNumber);
-                    Trace.WriteLine("Checksum: " + recChkSum);
-                    Trace.WriteLine("Data: " + newPacket.Substring(3, 31));
-                    string parsedData =
-                        $"{newPacket.Length,-14}" +
-                        $"{newPacket.Substring(0, 3),-14}" +
-                        $"{newPacket.Substring(3, 3),-14}" +
-                        $"{newPacket.Substring(6, 4),-14}" +
-                        $"{newPacket.Substring(10, 4),-14}" +
-                        $"{newPacket.Substring(14, 4),-14}" +
-                        $"{newPacket.Substring(18, 4),-14}" +
-                        $"{newPacket.Substring(22, 4),-14}" +
-                        $"{newPacket.Substring(26, 4),-14}" +
-                        $"{newPacket.Substring(30, 4),-14}" +
-                        $"{newPacket.Substring(34, 3),-14}" +   // FIX: 3 chars, not 4
-                        $"{calChkSum,-14}" +
-                        $"{lostPacketCount,-14}" +
-                        $"{chkSumError,-14}" +
-                        $"{packetRollover}\r\n";
-
-                    if (checkBoxParsedHistory.IsChecked)
-                    {
-                        LabelParsedData.Text = parsedData + LabelParsedData.Text;
-                    }
-                    else
-                    {
-                        LabelParsedData.Text = parsedData;
+                        lostPacketCount += 999 - oldPackNumber + newPacketNumber;
                     }
                 }
                 else
                 {
-                    Trace.WriteLine("Checksum error");
+                    if (newPacketNumber != oldPackNumber + 1)
+                    {
+                        lostPacketCount += newPacketNumber - oldPackNumber - 1;
+                    }
                 }
             }
+
+            oldPackNumber = newPacketNumber;
+
+            // 3) show parsed line (optional, like you had)
+            string parsedData =
+                $"{newPacket.Length,-14}" +
+                $"{newPacket.Substring(0, 3),-14}" +
+                $"{newPacket.Substring(3, 3),-14}" +
+                $"{newPacket.Substring(6, 4),-14}" +
+                $"{newPacket.Substring(10, 4),-14}" +
+                $"{newPacket.Substring(14, 4),-14}" +
+                $"{newPacket.Substring(18, 4),-14}" +
+                $"{newPacket.Substring(22, 4),-14}" +
+                $"{newPacket.Substring(26, 4),-14}" +
+                $"{newPacket.Substring(30, 4),-14}" +
+                $"{newPacket.Substring(34, 3),-14}" +
+                $"{calcChk,-14}" +
+                $"{lostPacketCount,-14}" +
+                $"{chkSumError,-14}" +
+                $"{packetRollover}\r\n";
+
+            if (checkBoxParsedHistory.IsChecked)
+                LabelParsedData.Text = parsedData + LabelParsedData.Text;
+            else
+                LabelParsedData.Text = parsedData;
+
+            // 4) finally update the solar labels
+            DisplaySolarData(newPacket);
         }
 
         private void DisplaySolarData(string validPacket)
         {
-            //SolarCalc.ParseSolarData(validPacket);
-            //labelSolarVolt.Text = solarCalc.GetVoltage(SolarCalc.analogVoltage[0]);
-            //labelBatteryVolt.Text = solarCalc.GetVoltage(SolarCalc.analogVoltage[2]);
-            //labelBatteryCurrent.Text = SolarCalc.GetCurrent(solarCalc.analogVoltage[1], solarCalc.analogVoltage[2]);
-            //labelLED1Current.Text = solarCalc.GetLedCurrent(solarCalc.analogVoltage[1], solarCalc.AnalogVoltage[4]);
-            //labelLED2Current.Text = solarCalc.GetLedCurrent(solarCalc.analogVoltage[1], solarCalc.AnalogVoltage[3]);
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                solarCalc.ParseSolarData(validPacket);
+
+                labelSolarVolt.Text = solarCalc.FormatVoltage(solarCalc.AnalogVoltage[0]); // A0
+                labelBatteryVolt.Text = solarCalc.FormatVoltage(solarCalc.AnalogVoltage[2]); // A2
+                labelBatteryCurrent.Text = solarCalc.GetBatteryCurrentText();
+                labelLED1Current.Text = solarCalc.GetLed1CurrentText();
+                labelLED2Current.Text = solarCalc.GetLed2CurrentText();
+            });
 
         }
 
