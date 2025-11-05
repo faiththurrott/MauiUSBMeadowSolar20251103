@@ -36,6 +36,7 @@ namespace MauiUSBMeadowSolar20251103
         //SerialPort serialPort = new SerialPort();
         StringBuilder stringBuilderSend = new StringBuilder("###1111196");
 
+        SolarCalc solarCalc = new SolarCalc();
 
         public MainPage()
         {
@@ -160,7 +161,7 @@ namespace MauiUSBMeadowSolar20251103
                     recChkSum = Convert.ToInt32(newPacket.Substring(34, 3));
                     if (recChkSum == calChkSum)
                     {
-                        //DisplaySolarData(newPacket);
+                        DisplaySolarData(newPacket);
                         oldPackNumber = newPacketNumber;
                     }
                     else
@@ -202,6 +203,17 @@ namespace MauiUSBMeadowSolar20251103
                     Trace.WriteLine("Checksum error");
                 }
             }
+        }
+
+        private void DisplaySolarData(string validPacket)
+        {
+            //SolarCalc.ParseSolarData(validPacket);
+            //labelSolarVolt.Text = solarCalc.GetVoltage(SolarCalc.analogVoltage[0]);
+            //labelBatteryVolt.Text = solarCalc.GetVoltage(SolarCalc.analogVoltage[2]);
+            //labelBatteryCurrent.Text = SolarCalc.GetCurrent(solarCalc.analogVoltage[1], solarCalc.analogVoltage[2]);
+            //labelLED1Current.Text = solarCalc.GetLedCurrent(solarCalc.analogVoltage[1], solarCalc.AnalogVoltage[4]);
+            //labelLED2Current.Text = solarCalc.GetLedCurrent(solarCalc.analogVoltage[1], solarCalc.AnalogVoltage[3]);
+
         }
 
         private void SetupFTDIdeviceByAutoSerialNumber()
@@ -400,7 +412,6 @@ namespace MauiUSBMeadowSolar20251103
                 calSendChkSum %= 1000;
                 stringBuilderSend.Remove(7, 3);
                 stringBuilderSend.Insert(7, calSendChkSum.ToString());
-                string messageOut = stringBuilderSend.ToString();
                 entrySend.Text = stringBuilderSend.ToString(); ;
                 messageOut += "\r\n";
                 byte[] messageBytes = Encoding.ASCII.GetBytes(messageOut);
