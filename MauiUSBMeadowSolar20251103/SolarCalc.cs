@@ -1,75 +1,77 @@
 ﻿using System;
 
-namespace MauiUSBMeadowSolar20251103
+namespace MauiUSBMeadowSolar20251103 
 {
-    public class SolarCalc
+    public class SolarCalc // this is the class we made to do the solar calcs
     {
-        // resistor values from the lab circuit
-        const float R_BATT = 100f;   // A1 to A2
-        const float R_LED1 = 220f;   // A1 to A4
-        const float R_LED2 = 220f;   // A1 to A3
+        // these are the resistor values 
+        const double R_BATT = 100d;   // this one is the 100Ω between A1 and A2
+        const double R_LED1 = 220d;   // this is 220Ω for LED1 (A1 to A4)
+        const double R_LED2 = 220d;   // this is 220Ω for LED2 (A1 to A3)
 
-        // what MainPage expects:
-        // solarCalc.AnalogVoltage[0], etc.
-        public int[] AnalogVoltage = new int[6];
+        // this is where we store the 6 analog readings (A0..A5) in mV
+        public int[] AnalogVoltage = new int[6]; // make an array with 6 spots
 
-        public int Binary { get; private set; }
+        public int Binary { get; private set; } // this will hold the binary/status number from the packet
 
-        public void ParseSolarData(string packet)
+        public void ParseSolarData(string packet) // this reads the packet that comes in as text
         {
-            // make sure we don't crash on short packets
+            // if packet is empty or null, just stop so we don't crash
             if (string.IsNullOrWhiteSpace(packet)) return;
+            // if packet is too short and doesn't have all the numbers, stop
             if (packet.Length < 34) return;
 
-            // packet format: ###NNN A0 A1 A2 A3 A4 A5 BIN CHK
-            AnalogVoltage[0] = Read4(packet, 6);  // A0
-            AnalogVoltage[1] = Read4(packet, 10);  // A1
-            AnalogVoltage[2] = Read4(packet, 14);  // A2
-            AnalogVoltage[3] = Read4(packet, 18);  // A3
-            AnalogVoltage[4] = Read4(packet, 22);  // A4
-            AnalogVoltage[5] = Read4(packet, 26);  // A5
-            Binary = Read4(packet, 30);  // binary word
+            // packet looks like: ###NNN A0 A1 A2 A3 A4 A5 BIN CHK
+            // we read 4 characters at the right spot for each value
+            AnalogVoltage[0] = Read4(packet, 6);  // A0 lives starting at spot 6
+            AnalogVoltage[1] = Read4(packet, 10);  // A1 starts at 10
+            AnalogVoltage[2] = Read4(packet, 14);  // A2 starts at 14
+            AnalogVoltage[3] = Read4(packet, 18);  // A3 starts at 18
+            AnalogVoltage[4] = Read4(packet, 22);  // A4 starts at 22
+            AnalogVoltage[5] = Read4(packet, 26);  // A5 starts at 26
+            Binary = Read4(packet, 30);  // the binary word starts at 30
         }
 
-        private int Read4(string text, int pos)
+        private int Read4(string text, int pos) // this helper reads 4 characters and turns them into a number
         {
+            // if there aren’t 4 characters there, just return 0
             if (text.Length < pos + 4)
                 return 0;
 
-            string part = text.Substring(pos, 4);
-            if (int.TryParse(part, out int value))
-                return value;
-            return 0;
+            string part = text.Substring(pos, 4); // grab 4 characters from the text
+            if (int.TryParse(part, out int value)) // try to turn those 4 characters into an int
+                return value; // if it worked, give back the number
+            return 0; // if it didn’t work, just give back 0
         }
 
-        public string FormatVoltage(int mV)
+        public string FormatVoltage(int mV) // this makes "x.xxx V" from millivolts
         {
-            float v = mV / 1000f;
-            return v.ToString("0.000") + " V";
+            double v = mV / 1000d; // change mV to volts
+            return v.ToString("0.000") + " V"; // make it look nice with 3 decimals
         }
 
-        public string GetBatteryCurrentText()
+        public string GetBatteryCurrentText() // this figures out the battery current
         {
-            float vA1 = AnalogVoltage[1] / 1000f;
-            float vA2 = AnalogVoltage[2] / 1000f;
-            float iA = (vA1 - vA2) / R_BATT;
-            return (iA * 1000f).ToString("0.00") + " mA";
+            double vA1 = AnalogVoltage[1] / 1000d; // make A1 into volts
+            double vA2 = AnalogVoltage[2] / 1000d; // make A2 into volts
+            double iA = (vA1 - vA2) / R_BATT; // current = voltage drop / resistor
+            return (iA * 1000d).ToString("0.00") + " mA"; // change to mA and make it a string
         }
 
-        public string GetLed1CurrentText()
+        public string GetLed1CurrentText() // this figures out LED1 current
         {
-            float vA1 = AnalogVoltage[1] / 1000f;
-            float vA4 = AnalogVoltage[4] / 1000f;
-            float iA = (vA1 - vA4) / R_LED1;
-            return (iA * 1000f).ToString("0.00") + " mA";
+            double vA1 = AnalogVoltage[1] / 1000d; // A1 in volts
+            double vA4 = AnalogVoltage[4] / 1000d; // A4 in volts
+            double iA = (vA1 - vA4) / R_LED1; // current = voltage drop / 220Ω
+            return (iA * 1000d).ToString("0.00") + " mA"; // show it in mA
         }
 
-        public string GetLed2CurrentText()
+        public string GetLed2CurrentText() // this figures out LED2 current
         {
-            float vA1 = AnalogVoltage[1] / 1000f;
-            float vA3 = AnalogVoltage[3] / 1000f;
-            float iA = (vA1 - vA3) / R_LED2;
-            return (iA * 1000f).ToString("0.00") + " mA";
+            double vA1 = AnalogVoltage[1] / 1000d; // A1 in volts
+            double vA3 = AnalogVoltage[3] / 1000d; // A3 in volts
+            double iA = (vA1 - vA3) / R_LED2; // current = voltage drop / 220Ω
+            return (iA * 1000d).ToString("0.00") + " mA"; // show it in mA
         }
     }
 }

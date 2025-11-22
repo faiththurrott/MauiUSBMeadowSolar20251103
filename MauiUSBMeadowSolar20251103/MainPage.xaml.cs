@@ -11,104 +11,112 @@ namespace MauiUSBMeadowSolar20251103
 {
     public partial class MainPage : ContentPage
     {
+        
         //https://ftdichip.com/software-examples/code-examples/csharp-examples
 
-        UInt32 ftdiDeviceCount = 0;
-        FTDI.FT_STATUS ftStatus = FTDI.FT_STATUS.FT_OK;
+        UInt32 ftdiDeviceCount = 0;                  // how many FTDI devices are plugged in
+        FTDI.FT_STATUS ftStatus = FTDI.FT_STATUS.FT_OK; // this holds the result of FTDI functions
 
-        // Create new instance of the FTDI device class
+        // make an FTDI device object so we can talk to the USB thing
         FTDI myFtdiDevice = new FTDI();
 
-        // Allocate storage for device info list
+        // this is an array to store info about up to 64 FTDI devices
         FTDI.FT_DEVICE_INFO_NODE[] ftdiDeviceList = new FTDI.FT_DEVICE_INFO_NODE[64];
-        private uint packetSize = 39;
-        private uint numBytesWritten;
-        private bool bPortOpen = false;
-        private bool sendDataOk;
-        private string newPacket;
-        //private int newPacketNumber;
-        private int oldPackNumber = -1;
-        private int newPacketNumber = 0;
-        private int lostPacketCount = 0;
-        private int packetRollover = 0;
-        private int chkSumError = 0;
+        private uint packetSize = 39;     // how many bytes we expect in each packet from the board
+        private uint numBytesWritten;     // how many bytes we actually wrote out
+        private bool bPortOpen = false;   // flag to remember if port is open or not
+        private bool sendDataOk;          // flag we can use for send
+        private string newPacket;         // the latest packet we read from USB
+        //private int newPacketNumber;    // old variable not used
+        private int oldPackNumber = -1;   // last packet number we saw, start at -1 so first one always passes
+        private int newPacketNumber = 0;  // current packet number from the message
+        private int lostPacketCount = 0;  // counter if packets are missing
+        private int packetRollover = 0;   // counter when packet number goes 999 → 000
+        private int chkSumError = 0;      // counter for bad checksum packets
 
-        //SerialPort serialPort = new SerialPort();
-        StringBuilder stringBuilderSend = new StringBuilder("###1111196");
+        // this was for serial port before, now using FTDI
+        StringBuilder stringBuilderSend = new StringBuilder("###1111196"); // starting message we send, we edit bits in here
 
-        SolarCalc solarCalc = new SolarCalc();
+        SolarCalc solarCalc = new SolarCalc(); // our other class that converts packet into voltages and currents
 
         public MainPage()
         {
-            InitializeComponent();
+            InitializeComponent(); // builds the UI from XAML
         }
 
         private void btnOpenClose_Clicked(object sender, EventArgs e)
         {
+            // if port is NOT open, then open it
             if (!bPortOpen)
             {
-                RefreshDeviceList(); // Call method to update the list
-                sendDataOk = false; // set the flag to false
-                SetupFTDIdeviceByAutoSerialNumber();
-                _ = MonitorUSBdata();
-                btnOpenClose.Text = "Close";
-                bPortOpen = true;
+                RefreshDeviceList(); // get list of USB/FTDI devices
+                sendDataOk = false; // reset flag
+                SetupFTDIdeviceByAutoSerialNumber(); // open the first device
+                _ = MonitorUSBdata(); // start the loop that keeps reading data
+                btnOpenClose.Text = "Close"; // change button text
+                bPortOpen = true; // remember that we opened it
             }
-            else
+            else // if it WAS open, then close it
             {
-                CloseFtdiDevice();
-                btnOpenClose.Text = "Open";
-                bPortOpen = false;
+                CloseFtdiDevice(); // close it
+                btnOpenClose.Text = "Open"; // change button text back
+                bPortOpen = false; // remember it is closed
             }
         }
 
         private void CloseFtdiDevice()
         {
-            ftStatus = myFtdiDevice.Close();
-            return;
+            ftStatus = myFtdiDevice.Close(); // tell FTDI to close
+            return; // done
         }
 
         private async Task MonitorUSBdata()
         {
+            // keep doing this as long as the FTDI device is open
             while (myFtdiDevice.IsOpen)
             {
-                // Check the amount of data available to read
-                // In this case we know how much data we are expecting, 
-                // so wait until we have all of the bytes we have sent.
+                // we want to read only when a whole packet is there
                 UInt32 numBytesAvailable = 0;
                 do
                 {
+                    // ask FTDI how many bytes are ready
                     ftStatus = myFtdiDevice.GetRxBytesAvailable(ref numBytesAvailable);
                     if (ftStatus != FTDI.FT_STATUS.FT_OK)
                     {
-                        // Wait for a key press
+                        // if something went wrong, write it to debug and stop
                         Trace.WriteLine("Failed to get number of bytes available to read (error " + ftStatus.ToString() + ")");
                         return;
                     }
-                } while (numBytesAvailable < packetSize);
+                } while (numBytesAvailable < packetSize); // keep looping until we have a full packet
 
-                // Now that we have the amount of data we want available, read it
+                // now we have enough to read
                 string readData;
                 UInt32 numBytesRead = 0;
-                //Note that the read method is overload, so can read string or byte array data
+                // read the data as a string
                 ftStatus = myFtdiDevice.Read(out readData, numBytesAvailable, ref numBytesRead);
                 if (ftStatus != FTDI.FT_STATUS.FT_OK)
                 {
-                    // Wait for a key press
                     Trace.WriteLine("Failed to read data (error " + ftStatus.ToString() + ")");
                     return;
                 }
+
+                // show what we read in debug
                 Trace.WriteLine("Read data: " + readData);
-                newPacket = readData;
+                newPacket = readData; // save it so we can parse it
+
+                // if user wants to keep history, add to front
                 if (checkBoxHistory.IsChecked)
                 {
                     LabelRXdata.Text = newPacket + LabelRXdata.Text;
                 }
-                else
+                else // otherwise just show last packet
                 {
                     LabelRXdata.Text = newPacket;
                 }
-                await Task.Delay(90);
+
+                await Task.Delay(90); // small pause so UI can update
+
+                // only parse if packet is big enough
                 if (newPacket.Length >= packetSize)
                 {
                     ParseNewPacket();
@@ -119,24 +127,28 @@ namespace MauiUSBMeadowSolar20251103
 
         private void ParseNewPacket()
         {
-            // basic sanity
+            // make sure packet is not empty
             if (string.IsNullOrEmpty(newPacket))
                 return;
+            // make sure it's long enough
             if (newPacket.Length < 37)
                 return;
+            // make sure it starts with ### like our format
             if (!newPacket.StartsWith("###"))
                 return;
 
-            // 1) checksum once
+            // 1) do checksum to make sure packet is good
             int calcChk = 0;
-            for (int i = 3; i < 34; i++)
+            for (int i = 3; i < 34; i++) // go through the part of packet we check
             {
                 calcChk += (byte)newPacket[i];
             }
-            calcChk %= 1000;
+            calcChk %= 1000; // keep last 3 digits
 
+            // get the checksum that came in the packet (chars 34,35,36)
             int recvChk = Convert.ToInt32(newPacket.Substring(34, 3));
 
+            // if checksum we made does not match packet checksum, count error and stop
             if (calcChk != recvChk)
             {
                 chkSumError++;
@@ -144,32 +156,36 @@ namespace MauiUSBMeadowSolar20251103
                 return;
             }
 
-            // 2) packet number / lost packet tracking
-            newPacketNumber = Convert.ToInt32(newPacket.Substring(3, 3));
+            // 2) check packet number so we can tell if we lost some
+            newPacketNumber = Convert.ToInt32(newPacket.Substring(3, 3)); // packet number is after ###
 
-            if (oldPackNumber > -1)
+            if (oldPackNumber > -1) // only do this after first packet
             {
                 if (newPacketNumber < oldPackNumber)
                 {
-                    // rollover
+                    // this means we wrapped around 999 → 000
                     packetRollover++;
                     if (oldPackNumber != 999)
                     {
+                        // count how many we missed across the rollover
                         lostPacketCount += 999 - oldPackNumber + newPacketNumber;
                     }
                 }
                 else
                 {
+                    // normal case: check if we skipped numbers
                     if (newPacketNumber != oldPackNumber + 1)
                     {
+                        // add how many were skipped
                         lostPacketCount += newPacketNumber - oldPackNumber - 1;
                     }
                 }
             }
 
+            // remember this packet number for next time
             oldPackNumber = newPacketNumber;
 
-            // 3) show parsed line (optional, like you had)
+            // 3) make a nice string that shows all parts of the packet
             string parsedData =
                 $"{newPacket.Length,-14}" +
                 $"{newPacket.Substring(0, 3),-14}" +
@@ -187,24 +203,27 @@ namespace MauiUSBMeadowSolar20251103
                 $"{chkSumError,-14}" +
                 $"{packetRollover}\r\n";
 
+            // show it either with history or replace
             if (checkBoxParsedHistory.IsChecked)
                 LabelParsedData.Text = parsedData + LabelParsedData.Text;
             else
                 LabelParsedData.Text = parsedData;
 
-            // 4) finally update the solar labels
+            // 4) update the labels that show solar stuff
             DisplaySolarData(newPacket);
         }
 
         private void DisplaySolarData(string validPacket)
         {
-            // run on UI thread
+            // we update UI things on the UI thread
             Dispatcher.Dispatch(() =>
             {
+                // let the solarCalc break the packet into numbers
                 solarCalc.ParseSolarData(validPacket);
 
-                labelSolarVolt.Text = solarCalc.FormatVoltage(solarCalc.AnalogVoltage[0]); // A0
-                labelBatteryVolt.Text = solarCalc.FormatVoltage(solarCalc.AnalogVoltage[2]); // A2
+                // fill in the labels with formatted text
+                labelSolarVolt.Text = solarCalc.FormatVoltage(solarCalc.AnalogVoltage[0]); // A0 solar panel
+                labelBatteryVolt.Text = solarCalc.FormatVoltage(solarCalc.AnalogVoltage[2]); // A2 battery
                 labelBatteryCurrent.Text = solarCalc.GetBatteryCurrentText();
                 labelLED1Current.Text = solarCalc.GetLed1CurrentText();
                 labelLED2Current.Text = solarCalc.GetLed2CurrentText();
@@ -213,67 +232,59 @@ namespace MauiUSBMeadowSolar20251103
 
         private void SetupFTDIdeviceByAutoSerialNumber()
         {
-            // Open first device in our list by serial number
+            // open the first FTDI device we found earlier
             ftStatus = myFtdiDevice.OpenBySerialNumber(ftdiDeviceList[0].SerialNumber);
             if (ftStatus != FTDI.FT_STATUS.FT_OK)
             {
-                // Wait for a key press
                 Trace.WriteLine("Failed to open device (error " + ftStatus.ToString() + ")");
                 return;
             }
 
-            // Set up device data parameters
-            // Set Baud rate
+            // set the baud rate to match our board
             ftStatus = myFtdiDevice.SetBaudRate(115200);
             if (ftStatus != FTDI.FT_STATUS.FT_OK)
             {
-                // Wait for a key press
                 Trace.WriteLine("Failed to set Baud rate (error " + ftStatus.ToString() + ")");
                 return;
             }
 
-            // Set data characteristics - Data bits, Stop bits, Parity
-            ftStatus = myFtdiDevice.SetDataCharacteristics(FTDI.FT_DATA_BITS.FT_BITS_8, FTDI.FT_STOP_BITS.FT_STOP_BITS_1, FTDI.FT_PARITY.FT_PARITY_NONE);
+            // set it to 8 data bits, 1 stop bit, no parity (normal serial)
+            ftStatus = myFtdiDevice.SetDataCharacteristics(
+                FTDI.FT_DATA_BITS.FT_BITS_8,
+                FTDI.FT_STOP_BITS.FT_STOP_BITS_1,
+                FTDI.FT_PARITY.FT_PARITY_NONE);
             if (ftStatus != FTDI.FT_STATUS.FT_OK)
             {
-                // Wait for a key press
                 Trace.WriteLine("Failed to set data characteristics (error " + ftStatus.ToString() + ")");
                 return;
             }
 
-            // Set read timeout to 5 seconds, write timeout to infinite
+            // set timeouts so read doesn’t hang forever
             ftStatus = myFtdiDevice.SetTimeouts(5000, 0);
             if (ftStatus != FTDI.FT_STATUS.FT_OK)
             {
-                // Wait for a key press
                 Trace.WriteLine("Failed to set timeouts (error " + ftStatus.ToString() + ")");
-
                 return;
             }
 
-            // Check the amount of data available to read
-            // In this case we know how much data we are expecting, 
-            // so wait until we have all of the bytes we have sent.
+            // here we wait until a full packet is waiting to be read
             UInt32 numBytesAvailable = 0;
             do
             {
                 ftStatus = myFtdiDevice.GetRxBytesAvailable(ref numBytesAvailable);
                 if (ftStatus != FTDI.FT_STATUS.FT_OK)
                 {
-                    // Wait for a key press
                     Trace.WriteLine("Failed to get number of bytes available to read (error " + ftStatus.ToString() + ")");
                     return;
                 }
             } while (numBytesAvailable < packetSize);
 
-            // Now that we have the amount of data we want available, read it
+            // now we actually read it once
             string readData;
             UInt32 numBytesRead = 0;
-            // Note that the Read method is overloaded, so can read string or byte array data
             ftStatus = myFtdiDevice.Read(out readData, numBytesAvailable, ref numBytesRead);
             if (ftStatus != FTDI.FT_STATUS.FT_OK)
             {
-                // Wait for a key press
                 Trace.WriteLine("Failed to read data (error " + ftStatus.ToString() + ")");
                 return;
             }
@@ -281,9 +292,8 @@ namespace MauiUSBMeadowSolar20251103
 
         private void RefreshDeviceList()
         {
-            // Determine the number of FTDI devices connected to the machine
+            // ask FTDI how many devices there are
             ftStatus = myFtdiDevice.GetNumberOfDevices(ref ftdiDeviceCount);
-            // Check status
             if (ftStatus == FTDI.FT_STATUS.FT_OK)
             {
                 Trace.WriteLine("Number of FTDI devices: " + ftdiDeviceCount.ToString());
@@ -291,24 +301,23 @@ namespace MauiUSBMeadowSolar20251103
             }
             else
             {
-                // Wait for a key press
                 Trace.WriteLine("Failed to get number of devices (error " + ftStatus.ToString() + ")");
                 return;
             }
 
-            // If no devices available, return
+            // if none, then nothing to do
             if (ftdiDeviceCount == 0)
             {
-                // Wait for a key press
                 Trace.WriteLine("Failed to get number of devices (error " + ftStatus.ToString() + ")");
                 return;
             }
 
-            // Populate our device list
+            // fill our array with info about the devices
             ftStatus = myFtdiDevice.GetDeviceList(ftdiDeviceList);
 
             if (ftStatus == FTDI.FT_STATUS.FT_OK)
             {
+                // print info for each device
                 for (UInt32 i = 0; i < ftdiDeviceCount; i++)
                 {
                     Trace.WriteLine("Device Index: " + i.ToString());
@@ -326,6 +335,7 @@ namespace MauiUSBMeadowSolar20251103
 
         private void btnClear_Clicked(object sender, EventArgs e)
         {
+            // clear the two text areas on the screen
             LabelRXdata.Text = "";
             LabelParsedData.Text = "";
         }
@@ -334,15 +344,15 @@ namespace MauiUSBMeadowSolar20251103
         {
             try
             {
+                // get what user typed
                 string messageOut = entrySend.Text;
-                messageOut += "\r\n";
-                byte[] messageBytes = Encoding.ASCII.GetBytes(messageOut);
+                messageOut += "\r\n"; // add CRLF
+                byte[] messageBytes = Encoding.ASCII.GetBytes(messageOut); // make it bytes
 
-                // Note that the Write method is overloaded, so can write string or byte array data
+                // send to FTDI
                 ftStatus = myFtdiDevice.Write(messageBytes, messageBytes.Length, ref numBytesWritten);
                 if (ftStatus != FTDI.FT_STATUS.FT_OK)
                 {
-                    // Wait for a key press
                     Trace.WriteLine("Failed to write to device (error " + ftStatus.ToString() + ")");
                     return;
                 }
@@ -355,12 +365,12 @@ namespace MauiUSBMeadowSolar20251103
 
         private void DeviceIndex_TextChanged(object sender, TextChangedEventArgs e)
         {
-            // not implemented.
+            // not used right now
         }
 
         private void btnBit3_Clicked(object sender, EventArgs e)
         {
-            ButtonClicked(3);
+            ButtonClicked(3); // tell helper which bit button we pressed
         }
 
         private void btnBit2_Clicked(object sender, EventArgs e)
@@ -380,48 +390,58 @@ namespace MauiUSBMeadowSolar20251103
 
         private void ButtonClicked(int i)
         {
+            // make an array of the 4 bit buttons so we can pick by index
             Button[] btnBit = new Button[] { btnBit0, btnBit1, btnBit2, btnBit3 };
-            if (btnBit[i].Text== "0")
+
+            // if that button currently shows 0, change to 1
+            if (btnBit[i].Text == "0")
             {
-                btnBit[i].Text = "1";
-                stringBuilderSend[i + 3] = '1';
+                btnBit[i].Text = "1";              // update button text
+                stringBuilderSend[i + 3] = '1';    // update the packet string (bits start at index 3)
             }
-            else
+            else // if it was 1 then make it 0
             {
                 btnBit[i].Text = "0";
                 stringBuilderSend[i + 3] = '0';
             }
+            // after changing the bits, actually send the packet
             SendPacket();
         }
 
         private void SendPacket()
         {
-            int calSendChkSum = 0;
+            int calSendChkSum = 0; // we will calculate our checksum here
             try
             {
-                string messageOut = stringBuilderSend.ToString();
-                for (int i = 3; i <7; i++)
+                string messageOut = stringBuilderSend.ToString(); // get current packet text
+
+                // checksum is based on chars 3..6
+                for (int i = 3; i < 7; i++)
                 {
                     calSendChkSum += (byte)stringBuilderSend[i];
                 }
-                calSendChkSum %= 1000;
-                stringBuilderSend.Remove(7, 3);
-                stringBuilderSend.Insert(7, calSendChkSum.ToString());
-                entrySend.Text = stringBuilderSend.ToString(); ;
-                messageOut += "\r\n";
-                byte[] messageBytes = Encoding.ASCII.GetBytes(messageOut);
+                calSendChkSum %= 1000; // keep last 3 digits
 
-                // Note that the Write method is overloaded, so can write string or byte array data
+                // replace old checksum in the string with the new one
+                stringBuilderSend.Remove(7, 3); // remove 3 chars where checksum goes
+                stringBuilderSend.Insert(7, calSendChkSum.ToString()); // put the new checksum in
+
+                // show it in the entry box too
+                entrySend.Text = stringBuilderSend.ToString();
+                messageOut += "\r\n"; // add CRLF so the other side knows it's done
+                byte[] messageBytes = Encoding.ASCII.GetBytes(messageOut); // turn into bytes
+
+                // send to FTDI
                 ftStatus = myFtdiDevice.Write(messageBytes, messageBytes.Length, ref numBytesWritten);
                 if (ftStatus != FTDI.FT_STATUS.FT_OK)
                 {
-                    // Wait for a key press
                     Trace.WriteLine("Failed to write to device (error " + ftStatus.ToString() + ")");
                     return;
                 }
             }
             catch (Exception ex)
             {
+                // if something goes wrong, print it
                 Trace.WriteLine(ex.Message);
             }
         }
