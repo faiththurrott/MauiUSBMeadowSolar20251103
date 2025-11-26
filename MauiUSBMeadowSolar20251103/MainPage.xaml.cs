@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.IO;
+using System.Globalization;
 
 using FTD2XX_NET;
 
@@ -38,6 +40,13 @@ namespace MauiUSBMeadowSolar20251103
         StringBuilder stringBuilderSend = new StringBuilder("###1111196"); // starting message we send, we edit bits in here
 
         SolarCalc solarCalc = new SolarCalc(); // our other class that converts packet into voltages and currents
+
+        // File Unity will read to know plant growth (0–100%)
+        private const string SolarPercentFilePath = @"C:\Temp\solar_growth.txt";
+
+        // Max solar voltage (in volts) that maps to 100% growth in the game
+        // Adjust this later if your real panel never gets to 5V, etc.
+        private const double MaxSolarVoltageForGame = 5.0;
 
         public MainPage()
         {
@@ -227,7 +236,44 @@ namespace MauiUSBMeadowSolar20251103
                 labelBatteryCurrent.Text = solarCalc.GetBatteryCurrentText();
                 labelLED1Current.Text = solarCalc.GetLed1CurrentText();
                 labelLED2Current.Text = solarCalc.GetLed2CurrentText();
+
+                WriteSolarPercentForUnity();
             });
+        }
+
+        private void WriteSolarPercentForUnity()
+        {
+            try
+            {
+                // get the solar voltage from our calc in volts
+                double solarVoltage = solarCalc.GetSolarVoltage();
+
+                // map voltage to 0–100% for the game
+                double percent = (solarVoltage / MaxSolarVoltageForGame) * 100.0;
+
+                if (percent < 0) percent = 0;
+                if (percent > 100) percent = 100;
+
+                // make sure folder exists (e.g. C:\Temp)
+                var dir = Path.GetDirectoryName(SolarPercentFilePath);
+                if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                {
+                    Directory.CreateDirectory(dir);
+                }
+
+                // write as plain text (e.g. 37.5)
+                File.WriteAllText(
+                    SolarPercentFilePath,
+                    percent.ToString("F1", CultureInfo.InvariantCulture)
+                );
+
+                // optional debug
+                Trace.WriteLine($"Solar percent for Unity: {percent:F1}%");
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine("Error writing solar percent file: " + ex.Message);
+            }
         }
 
         private void SetupFTDIdeviceByAutoSerialNumber()
