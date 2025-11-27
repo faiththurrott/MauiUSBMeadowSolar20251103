@@ -77,5 +77,7 @@ namespace MauiUSBMeadowSolar20251103
         {
             return AnalogVoltage[0] / 1000d;  // A0 is solar panel in mV
         }
+        public double SolarVoltageVolts => AnalogVoltage[0] / 1000d;  // A0
+        public double BatteryVoltageVolts => AnalogVoltage[2] / 1000d; // A2
     }
 }

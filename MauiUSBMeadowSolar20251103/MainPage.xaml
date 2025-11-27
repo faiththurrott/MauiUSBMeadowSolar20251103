@@ -3,126 +3,357 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MauiUSBMeadowSolar20251103.MainPage">
 
-    <HorizontalStackLayout
-       Spacing="25"
-       Padding="20,10,0,0"
-       VerticalOptions="StartAndExpand">
-        <VerticalStackLayout>
-            <HorizontalStackLayout>
-                <Button
-                    x:Name="btnOpenClose"
-                    Text="Open"
-                    SemanticProperties.Hint="Open comport"
-                    Clicked="btnOpenClose_Clicked"/>
-                <Button
-                    x:Name="btnClear"
-                    Text="Clear"
-                    SemanticProperties.Hint="Clear serial data"
-                    Clicked="btnClear_Clicked"/>
-                <Picker
-                    x:Name="portPicker"
-                    Title="Select comPort"
-                    HorizontalOptions="Center"/>
-            </HorizontalStackLayout>
-            <HorizontalStackLayout>
-                <Label
-                   Text="Bits"
-                    FontSize="Medium"/>
-                <Button x:Name="btnBit0" Text="1" FontSize="Medium" Clicked="btnBit0_Clicked"/>
-                <Button x:Name="btnBit1" Text="1" FontSize="Medium" Clicked="btnBit1_Clicked"/>
-                <Button x:Name="btnBit2" Text="1" FontSize="Medium" Clicked="btnBit2_Clicked"/>
-                <Button x:Name="btnBit3" Text="1" FontSize="Medium" Clicked="btnBit3_Clicked"/>
-            </HorizontalStackLayout>
-        </VerticalStackLayout>
-        <VerticalStackLayout>
-            <Label
-                Text="Solar Voltage"/>
-            <Label
-                x:Name="labelSolarVolt"
-                MinimumWidthRequest="100"/>
-            <Label
-                Text="Battery Voltage"/>
-            <Label
-                x:Name="labelBatteryVolt"
-                MinimumWidthRequest="100"/>
-            <Label
-                Text="Battery Current"/>
-            <Label
-                x:Name="labelBatteryCurrent"
-                MinimumWidthRequest="100"/>
-            <Label
-                Text="LED 1 Current"/>
-            <Label
-                x:Name="labelLED1Current"
-                MinimumWidthRequest="100"/>
-            <Label
-                Text="LED 2 Current"/>
-            <Label
-                x:Name="labelLED2Current"
-                MinimumWidthRequest="100"/>
+    <!-- Pastel gradient background -->
+    <ContentPage.Background>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#FFE6F7" Offset="0.0" />
+            <GradientStop Color="#E8FBFF" Offset="0.5" />
+            <GradientStop Color="#E9FFE8" Offset="1.0" />
+        </LinearGradientBrush>
+    </ContentPage.Background>
+
+    <ContentPage.Resources>
+        <!-- Theme colors -->
+        <Color x:Key="AccentPink">#FF91C8</Color>
+        <Color x:Key="AccentBlue">#8DDCFF</Color>
+        <Color x:Key="AccentGreen">#6BBF59</Color>
+        <Color x:Key="AccentDarkGreen">#3D8C40</Color>
+        <Color x:Key="WindowBorder">#FFD5F1</Color>
+        <Color x:Key="WindowBackground">#FFFFFF</Color>
+
+        <!-- Reusable style for “windows” -->
+        <Style x:Key="WindowFrameStyle" TargetType="Frame">
+            <Setter Property="BackgroundColor" Value="{StaticResource WindowBackground}" />
+            <Setter Property="CornerRadius" Value="18" />
+            <Setter Property="BorderColor" Value="{StaticResource WindowBorder}" />
+            <Setter Property="HasShadow" Value="True" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0,0,0,10" />
+        </Style>
+    </ContentPage.Resources>
+
+    <!-- Header row, two columns, bottom graph row -->
+    <Grid Padding="20"
+          RowDefinitions="Auto,*,Auto"
+          ColumnDefinitions="2*,3*">
+
+        <!-- ===== HEADER ===== -->
+        <Grid Grid.Row="0" Grid.ColumnSpan="2"
+              ColumnDefinitions="Auto,*,Auto"
+              Margin="0,0,0,16">
+
+            <Label Grid.Column="0"
+                   Text="🌱"
+                   FontSize="32"
+                   VerticalOptions="Center"
+                   Margin="0,0,10,0" />
+
+            <Label Text="SolarGreenHouseGame"
+                   Grid.Column="1"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center"
+                   FontSize="32"
+                   FontAttributes="Bold,Italic"
+                   TextColor="#6BBF59" />
+
+            <Label x:Name="lblConnected"
+                   Grid.Column="2"
+                   HorizontalOptions="End"
+                   VerticalOptions="Center"
+                   TextColor="{StaticResource AccentGreen}"
+                   FontAttributes="Bold" />
+        </Grid>
+
+        <!-- ========== LEFT: CONNECTION + MEASUREMENTS ========== -->
+        <VerticalStackLayout Grid.Row="1"
+                             Grid.Column="0"
+                             Spacing="12">
+
+            <!-- Connection + bits window -->
+            <Frame Style="{StaticResource WindowFrameStyle}">
+                <Grid RowDefinitions="Auto,*">
+
+                    <!-- Title bar -->
+                    <Grid BackgroundColor="#FFE5F2"
+                          Padding="12,6">
+                        <Label Text="🔌 Connection &amp; Bits"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource AccentPink}" />
+                    </Grid>
+
+                    <!-- Content -->
+                    <VerticalStackLayout Grid.Row="1"
+                                         Padding="12,8"
+                                         Spacing="10">
+
+                        <!-- Connection controls -->
+                        <HorizontalStackLayout Spacing="10">
+                            <Button x:Name="btnOpenClose"
+                                    Text="Open"
+                                    SemanticProperties.Hint="Open comport"
+                                    BackgroundColor="{StaticResource AccentGreen}"
+                                    TextColor="White"
+                                    CornerRadius="14"
+                                    Padding="14,8"
+                                    Clicked="btnOpenClose_Clicked" />
+
+                            <Button x:Name="btnClear"
+                                    Text="Clear"
+                                    SemanticProperties.Hint="Clear serial data"
+                                    BackgroundColor="{StaticResource AccentGreen}"
+                                    TextColor="White"
+                                    CornerRadius="14"
+                                    Padding="14,8"
+                                    Clicked="btnClear_Clicked" />
+
+                            <Picker x:Name="portPicker"
+                                    Title="Select comPort"
+                                    HorizontalOptions="FillAndExpand"
+                                    TextColor="{StaticResource AccentDarkGreen}" />
+                        </HorizontalStackLayout>
+
+                        <!-- Bits row -->
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Bits"
+                                   FontSize="Medium"
+                                   TextColor="Black" />
+                            <HorizontalStackLayout Spacing="8">
+                                <Button x:Name="btnBit0" Text="1" FontSize="Medium"
+                                        BackgroundColor="{StaticResource AccentBlue}"
+                                        TextColor="White"
+                                        CornerRadius="14"
+                                        Clicked="btnBit0_Clicked" />
+                                <Button x:Name="btnBit1" Text="1" FontSize="Medium"
+                                        BackgroundColor="{StaticResource AccentBlue}"
+                                        TextColor="White"
+                                        CornerRadius="14"
+                                        Clicked="btnBit1_Clicked" />
+                                <Button x:Name="btnBit2" Text="1" FontSize="Medium"
+                                        BackgroundColor="{StaticResource AccentBlue}"
+                                        TextColor="White"
+                                        CornerRadius="14"
+                                        Clicked="btnBit2_Clicked" />
+                                <Button x:Name="btnBit3" Text="1" FontSize="Medium"
+                                        BackgroundColor="{StaticResource AccentBlue}"
+                                        TextColor="White"
+                                        CornerRadius="14"
+                                        Clicked="btnBit3_Clicked" />
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+
+                    </VerticalStackLayout>
+                </Grid>
+            </Frame>
+
+            <!-- Live measurements window -->
+            <Frame Style="{StaticResource WindowFrameStyle}">
+                <Grid RowDefinitions="Auto,*">
+
+                    <Grid BackgroundColor="#E4FFF0"
+                          Padding="12,6">
+                        <Label Text="📊 Live Measurements"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource AccentGreen}" />
+                    </Grid>
+
+                    <VerticalStackLayout Grid.Row="1"
+                                         Padding="12,8"
+                                         Spacing="6">
+
+                        <!-- Plant growth bar -->
+                        <Label Text="🌿 Plant Growth"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource AccentGreen}"
+                               Margin="0,0,0,2" />
+                        <ProgressBar x:Name="progressPlantGrowth"
+                                     HeightRequest="6"
+                                     ProgressColor="{StaticResource AccentGreen}"
+                                     BackgroundColor="#E0F5E5"
+                                     Margin="0,0,0,8" />
+
+                        <!-- Voltages & currents grid -->
+                        <Grid ColumnDefinitions="2*,3*"
+                              RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+                              RowSpacing="4">
+
+                            <Label Text="Solar Voltage"
+                                   Grid.Row="0" Grid.Column="0" />
+                            <Label x:Name="labelSolarVolt"
+                                   Grid.Row="0" Grid.Column="1"
+                                   MinimumWidthRequest="100"
+                                   HorizontalTextAlignment="End" />
+
+                            <Label Text="Battery Voltage"
+                                   Grid.Row="1" Grid.Column="0" />
+                            <Label x:Name="labelBatteryVolt"
+                                   Grid.Row="1" Grid.Column="1"
+                                   MinimumWidthRequest="100"
+                                   HorizontalTextAlignment="End" />
+
+                            <Label Text="Battery Current"
+                                   Grid.Row="2" Grid.Column="0" />
+                            <Label x:Name="labelBatteryCurrent"
+                                   Grid.Row="2" Grid.Column="1"
+                                   MinimumWidthRequest="100"
+                                   HorizontalTextAlignment="End" />
+
+                            <Label Text="LED 1 Current"
+                                   Grid.Row="3" Grid.Column="0" />
+                            <Label x:Name="labelLED1Current"
+                                   Grid.Row="3" Grid.Column="1"
+                                   MinimumWidthRequest="100"
+                                   HorizontalTextAlignment="End" />
+
+                            <Label Text="LED 2 Current"
+                                   Grid.Row="4" Grid.Column="0" />
+                            <Label x:Name="labelLED2Current"
+                                   Grid.Row="4" Grid.Column="1"
+                                   MinimumWidthRequest="100"
+                                   HorizontalTextAlignment="End" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Grid>
+            </Frame>
 
         </VerticalStackLayout>
-        <VerticalStackLayout>
-            <HorizontalStackLayout>
-                <Button
-                    x:Name="btnSend"
-                    Text="Send"
-                    Clicked="btnSend_Clicked"
-                    HorizontalOptions="Center"/>
-                <Entry
-                    x:Name="entrySend"
-                    Text="###111196"
-                    HorizontalOptions="Center"/>
-            </HorizontalStackLayout>
-            <HorizontalStackLayout>
-                <Label
-                    Text="Received Packet"
-                    HorizontalOptions="Center"/>
-                <CheckBox
-                    x:Name="checkBoxHistory"
-                    IsChecked="False"
-                    HorizontalOptions="Center"/>
-                <Label
-                    Padding="50,0,0,0"
-                    Text="Parsed Packet History"/>
-                <CheckBox
-                    x:Name="checkBoxParsedHistory"
-                    IsChecked="False"
-                    HorizontalOptions="Center"/>
-                <Label
-                    x:Name="lblConnected"
-                    Padding="50,0,0,0"/>
-                <Label 
-                    Text="Device Index"/>
-                <!--Entry
-                    x:Name="DeviceIndex"
-                    Text="0"
-                    TextChanged="DeviceIndex_TextChanged"/-->
-            </HorizontalStackLayout>
-            <Label
-                    x:Name="DeviceListLabel"
-                    Text="Device List"/>
-            <Label
-                    Text="Received Packet"/>
-            <Entry
-                x:Name="LabelRXdata"
-                Text="Received Packet"
-                MinimumWidthRequest="310"/>
-            <ScrollView
-                x:Name="scrollViewRecData"
-                MaximumHeightRequest="500"
-                VerticalOptions="StartAndExpand"/>
 
-            <Label
-                x:Name="lblMessage"/>
-            <Label
-                Text="Length    Header    Number    Analog0    Analog1    Analog2    Analog3   Analog4    Analog5    Binary    CkSumRx CkSumCal lost   ChkError   Rollover"
-                x:Name="parseTitle"/>
-            <Label 
-                x:Name="LabelParsedData"
-                Text="Parsed Packet"
-                MinimumWidthRequest="310"/>
+        <!-- ========== RIGHT: SEND + SERIAL / PARSED DATA ========== -->
+        <VerticalStackLayout Grid.Row="1"
+                             Grid.Column="1"
+                             Spacing="12">
+
+            <!-- Send controls window -->
+            <Frame Style="{StaticResource WindowFrameStyle}">
+                <Grid RowDefinitions="Auto,*">
+                    <Grid BackgroundColor="#FFE5F2"
+                          Padding="12,6">
+                        <Label Text="📨 Send Control Packet"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource AccentPink}" />
+                    </Grid>
+
+                    <HorizontalStackLayout Grid.Row="1"
+                                           Padding="12,8"
+                                           Spacing="10">
+                        <Button x:Name="btnSend"
+                                Text="Send"
+                                BackgroundColor="{StaticResource AccentPink}"
+                                TextColor="White"
+                                CornerRadius="14"
+                                Padding="14,8"
+                                Clicked="btnSend_Clicked" />
+                        <Entry x:Name="entrySend"
+                               Text="###111196"
+                               HorizontalOptions="FillAndExpand" />
+                    </HorizontalStackLayout>
+                </Grid>
+            </Frame>
+
+            <!-- Serial / parsed data window -->
+            <Frame Style="{StaticResource WindowFrameStyle}">
+                <Grid RowDefinitions="Auto,*">
+                    <Grid BackgroundColor="#E4F2FF"
+                          Padding="12,6">
+                        <Label x:Name="DeviceListLabel"
+                               Text="📡 Device &amp; Packet View"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource AccentBlue}" />
+                    </Grid>
+
+                    <VerticalStackLayout Grid.Row="1"
+                                         Padding="12,8"
+                                         Spacing="6">
+
+                        <!-- Options row -->
+                        <HorizontalStackLayout Spacing="8">
+                            <Label Text="Received Packet" />
+                            <CheckBox x:Name="checkBoxHistory"
+                                      IsChecked="False" />
+                            <Label Text="Parsed Packet History"
+                                   Padding="10,0,0,0" />
+                            <CheckBox x:Name="checkBoxParsedHistory"
+                                      IsChecked="False" />
+                            <Label Text="Device Index"
+                                   Padding="10,0,0,0" />
+                        </HorizontalStackLayout>
+
+                        <!-- Received packet -->
+                        <Label Text="Received Packet" />
+                        <ScrollView x:Name="scrollViewRecData"
+                                    MaximumHeightRequest="120">
+                            <VerticalStackLayout>
+                                <Entry x:Name="LabelRXdata"
+                                       Text="Received Packet"
+                                       MinimumWidthRequest="310"
+                                       HorizontalOptions="FillAndExpand" />
+                            </VerticalStackLayout>
+                        </ScrollView>
+
+                        <Label x:Name="lblMessage"
+                               TextColor="Red" />
+
+                        <!-- Header row for parsed data -->
+                        <ScrollView Orientation="Horizontal"
+                                    HeightRequest="32"
+                                    Padding="0,0,0,4">
+                            <HorizontalStackLayout Spacing="16"
+                                                   VerticalOptions="Center">
+                                <Label Text="Length"   FontSize="Micro" />
+                                <Label Text="Header"   FontSize="Micro" />
+                                <Label Text="Number"   FontSize="Micro" />
+                                <Label Text="Analog0"  FontSize="Micro" />
+                                <Label Text="Analog1"  FontSize="Micro" />
+                                <Label Text="Analog2"  FontSize="Micro" />
+                                <Label Text="Analog3"  FontSize="Micro" />
+                                <Label Text="Analog4"  FontSize="Micro" />
+                                <Label Text="Analog5"  FontSize="Micro" />
+                                <Label Text="Binary"   FontSize="Micro" />
+                                <Label Text="CkSumRx"  FontSize="Micro" />
+                                <Label Text="CkSumCal" FontSize="Micro" />
+                                <Label Text="lost"     FontSize="Micro" />
+                                <Label Text="ChkError" FontSize="Micro" />
+                                <Label Text="Rollover" FontSize="Micro" />
+                            </HorizontalStackLayout>
+                        </ScrollView>
+
+                        <!-- Parsed packet data -->
+                        <ScrollView MaximumHeightRequest="160">
+                            <Label x:Name="LabelParsedData"
+                                   Text="Parsed Packet"
+                                   MinimumWidthRequest="310"
+                                   FontSize="Micro" />
+                        </ScrollView>
+
+                    </VerticalStackLayout>
+                </Grid>
+            </Frame>
+
         </VerticalStackLayout>
 
-    </HorizontalStackLayout>
+        <!-- ========== BOTTOM: GRAPH AREA (FULL WIDTH) ========== -->
+        <Frame Grid.Row="2"
+               Grid.ColumnSpan="2"
+               Style="{StaticResource WindowFrameStyle}"
+               Margin="0,10,0,0">
+            <VerticalStackLayout Padding="12,8" Spacing="6">
+                <Label Text="📈 Solar and Battery History"
+                       FontAttributes="Bold"
+                       TextColor="{StaticResource AccentDarkGreen}" />
+
+                <!-- Placeholder for future chart -->
+                <Frame HeightRequest="200"
+                       BackgroundColor="#F4F7FB"
+                       BorderColor="#D0D6E5"
+                       CornerRadius="8"
+                       Margin="0,4,0,0"
+                       HasShadow="False">
+                    <Label Text="Graph goes here"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center"
+                           TextColor="#9AA1B5" />
+                </Frame>
+            </VerticalStackLayout>
+        </Frame>
+
+    </Grid>
 </ContentPage>

@@ -41,6 +41,8 @@ namespace MauiUSBMeadowSolar20251103
 
         SolarCalc solarCalc = new SolarCalc(); // our other class that converts packet into voltages and currents
 
+        SolarGraphData graphData = new SolarGraphData();   // holds points for the graph
+
         // File Unity will read to know plant growth (0–100%)
         private const string SolarPercentFilePath = @"C:\Temp\solar_growth.txt";
 
@@ -228,6 +230,24 @@ namespace MauiUSBMeadowSolar20251103
             {
                 // let the solarCalc break the packet into numbers
                 solarCalc.ParseSolarData(validPacket);
+
+                // 1) get numeric voltages for graph + progress bar
+                double solarV = solarCalc.SolarVoltageVolts;
+                double batteryV = solarCalc.BatteryVoltageVolts;
+
+                // 2) update the UI labels (what you already had)
+                labelSolarVolt.Text = solarCalc.FormatVoltage(solarCalc.AnalogVoltage[0]);
+                labelBatteryVolt.Text = solarCalc.FormatVoltage(solarCalc.AnalogVoltage[2]);
+                labelBatteryCurrent.Text = solarCalc.GetBatteryCurrentText();
+                labelLED1Current.Text = solarCalc.GetLed1CurrentText();
+                labelLED2Current.Text = solarCalc.GetLed2CurrentText();
+
+                // 3) update growth bar to match Unity
+                double percent = Math.Clamp(solarV / 3.3, 0.0, 1.0); // 3.3V = 100%
+                progressPlantGrowth.Progress = percent;
+
+                // 4) store a sample for the graph
+                graphData.AddSample(solarV, batteryV);
 
                 // fill in the labels with formatted text
                 labelSolarVolt.Text = solarCalc.FormatVoltage(solarCalc.AnalogVoltage[0]); // A0 solar panel
