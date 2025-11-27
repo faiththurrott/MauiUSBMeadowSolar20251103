@@ -45,8 +45,7 @@ namespace MauiUSBMeadowSolar20251103
         private const string SolarPercentFilePath = @"C:\Temp\solar_growth.txt";
 
         // Max solar voltage (in volts) that maps to 100% growth in the game
-        // Adjust this later if your real panel never gets to 5V, etc.
-        private const double MaxSolarVoltageForGame = 5.0;
+        private const double MaxSolarVoltageForGame = 3.3;
 
         public MainPage()
         {

@@ -72,7 +72,7 @@ namespace MauiUSBMeadowSolar20251103
             double vA3 = AnalogVoltage[3] / 1000d; // A3 in volts
             double iA = (vA1 - vA3) / R_LED2; // current = voltage drop / 220Ω
             return (iA * 1000d).ToString("0.00") + " mA"; // show it in mA
-
+        }
          public double GetSolarVoltage()
         {
             return AnalogVoltage[0] / 1000d;  // A0 is solar panel in mV
