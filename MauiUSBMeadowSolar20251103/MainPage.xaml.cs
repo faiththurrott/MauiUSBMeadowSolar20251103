@@ -43,6 +43,9 @@ namespace MauiUSBMeadowSolar20251103
 
         SolarGraphData graphData = new SolarGraphData();   // holds points for the graph
 
+        private readonly SolarGraphData _graphData = new();
+        private readonly SolarGraphDrawable _graphDrawable;
+
         // File Unity will read to know plant growth (0–100%)
         private const string SolarPercentFilePath = @"C:\Temp\solar_growth.txt";
 
@@ -52,6 +55,10 @@ namespace MauiUSBMeadowSolar20251103
         public MainPage()
         {
             InitializeComponent(); // builds the UI from XAML
+
+            _graphDrawable = new SolarGraphDrawable(_graphData);
+            SolarChartView.Drawable = _graphDrawable;   // SolarChartView is your <GraphicsView>
+
         }
 
         private void btnOpenClose_Clicked(object sender, EventArgs e)
@@ -257,6 +264,12 @@ namespace MauiUSBMeadowSolar20251103
                 labelLED2Current.Text = solarCalc.GetLed2CurrentText();
 
                 WriteSolarPercentForUnity();
+
+                _graphData.AddSample(
+    solarCalc.AnalogVoltage[0] / 1000.0,   // A0 solar volts
+    solarCalc.AnalogVoltage[2] / 1000.0    // A2 battery volts
+);
+                SolarChartView.Invalidate();               // redraw the chart
             });
         }
 

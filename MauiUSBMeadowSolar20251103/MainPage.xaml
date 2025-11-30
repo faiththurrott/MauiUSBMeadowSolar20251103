@@ -32,10 +32,10 @@
         </Style>
     </ContentPage.Resources>
 
-    <!-- Header row, two columns, bottom graph row -->
+    <!-- HEADER row, two columns (left narrow, right wide), bottom graph row -->
     <Grid Padding="20"
           RowDefinitions="Auto,*,Auto"
-          ColumnDefinitions="2*,3*">
+          ColumnDefinitions="1*,3*">
 
         <!-- ===== HEADER ===== -->
         <Grid Grid.Row="0" Grid.ColumnSpan="2"
@@ -67,7 +67,7 @@
         <!-- ========== LEFT: CONNECTION + MEASUREMENTS ========== -->
         <VerticalStackLayout Grid.Row="1"
                              Grid.Column="0"
-                             Spacing="12">
+                             Spacing="10">
 
             <!-- Connection + bits window -->
             <Frame Style="{StaticResource WindowFrameStyle}">
@@ -151,7 +151,7 @@
 
                     <Grid BackgroundColor="#E4FFF0"
                           Padding="12,6">
-                        <Label Text="📊 Live Measurements"
+                        <Label Text="📚 Live Measurements"
                                FontAttributes="Bold"
                                TextColor="{StaticResource AccentGreen}" />
                     </Grid>
@@ -174,41 +174,41 @@
                         <!-- Voltages & currents grid -->
                         <Grid ColumnDefinitions="2*,3*"
                               RowDefinitions="Auto,Auto,Auto,Auto,Auto"
-                              RowSpacing="4">
+                              RowSpacing="2">
 
                             <Label Text="Solar Voltage"
                                    Grid.Row="0" Grid.Column="0" />
                             <Label x:Name="labelSolarVolt"
                                    Grid.Row="0" Grid.Column="1"
-                                   MinimumWidthRequest="100"
+                                   MinimumWidthRequest="80"
                                    HorizontalTextAlignment="End" />
 
                             <Label Text="Battery Voltage"
                                    Grid.Row="1" Grid.Column="0" />
                             <Label x:Name="labelBatteryVolt"
                                    Grid.Row="1" Grid.Column="1"
-                                   MinimumWidthRequest="100"
+                                   MinimumWidthRequest="80"
                                    HorizontalTextAlignment="End" />
 
                             <Label Text="Battery Current"
                                    Grid.Row="2" Grid.Column="0" />
                             <Label x:Name="labelBatteryCurrent"
                                    Grid.Row="2" Grid.Column="1"
-                                   MinimumWidthRequest="100"
+                                   MinimumWidthRequest="80"
                                    HorizontalTextAlignment="End" />
 
                             <Label Text="LED 1 Current"
                                    Grid.Row="3" Grid.Column="0" />
                             <Label x:Name="labelLED1Current"
                                    Grid.Row="3" Grid.Column="1"
-                                   MinimumWidthRequest="100"
+                                   MinimumWidthRequest="80"
                                    HorizontalTextAlignment="End" />
 
                             <Label Text="LED 2 Current"
                                    Grid.Row="4" Grid.Column="0" />
                             <Label x:Name="labelLED2Current"
                                    Grid.Row="4" Grid.Column="1"
-                                   MinimumWidthRequest="100"
+                                   MinimumWidthRequest="80"
                                    HorizontalTextAlignment="End" />
                         </Grid>
                     </VerticalStackLayout>
@@ -220,7 +220,7 @@
         <!-- ========== RIGHT: SEND + SERIAL / PARSED DATA ========== -->
         <VerticalStackLayout Grid.Row="1"
                              Grid.Column="1"
-                             Spacing="12">
+                             Spacing="10">
 
             <!-- Send controls window -->
             <Frame Style="{StaticResource WindowFrameStyle}">
@@ -280,7 +280,7 @@
                         <!-- Received packet -->
                         <Label Text="Received Packet" />
                         <ScrollView x:Name="scrollViewRecData"
-                                    MaximumHeightRequest="120">
+                                    MaximumHeightRequest="100">
                             <VerticalStackLayout>
                                 <Entry x:Name="LabelRXdata"
                                        Text="Received Packet"
@@ -294,9 +294,9 @@
 
                         <!-- Header row for parsed data -->
                         <ScrollView Orientation="Horizontal"
-                                    HeightRequest="32"
-                                    Padding="0,0,0,4">
-                            <HorizontalStackLayout Spacing="16"
+                                    HeightRequest="28"
+                                    Padding="0,0,0,2">
+                            <HorizontalStackLayout Spacing="18"
                                                    VerticalOptions="Center">
                                 <Label Text="Length"   FontSize="Micro" />
                                 <Label Text="Header"   FontSize="Micro" />
@@ -341,19 +341,13 @@
                        TextColor="{StaticResource AccentDarkGreen}" />
 
                 <!-- Placeholder for future chart -->
-                <Frame HeightRequest="200"
-                       BackgroundColor="#F4F7FB"
-                       BorderColor="#D0D6E5"
-                       CornerRadius="8"
-                       Margin="0,4,0,0"
-                       HasShadow="False">
-                    <Label Text="Graph goes here"
-                           HorizontalOptions="Center"
-                           VerticalOptions="Center"
-                           TextColor="#9AA1B5" />
-                </Frame>
+                <GraphicsView x:Name="SolarChartView"
+                      HeightRequest="220"
+                      Margin="0,4,0,0"
+                      BackgroundColor="#F4F7FB" />
             </VerticalStackLayout>
         </Frame>
 
     </Grid>
 </ContentPage>
+
