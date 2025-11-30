@@ -269,7 +269,7 @@ namespace MauiUSBMeadowSolar20251103
     solarCalc.AnalogVoltage[0] / 1000.0,   // A0 solar volts
     solarCalc.AnalogVoltage[2] / 1000.0    // A2 battery volts
 );
-                SolarChartView.Invalidate();               // redraw the chart
+SolarChartView.Invalidate();               // redraw the chart
             });
         }
 
