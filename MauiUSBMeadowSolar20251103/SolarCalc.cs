@@ -55,7 +55,7 @@ namespace MauiUSBMeadowSolar20251103
             double vA1 = AnalogVoltage[1] / 1000d; // make A1 into volts
             double vA2 = AnalogVoltage[2] / 1000d; // make A2 into volts
             double iA = (vA1 - vA2) / R_BATT; // current = voltage drop / resistor
-            return (iA * 1000d).ToString("0.00") + " mA"; // change to mA and make it a string
+            return (iA * 100d).ToString("0.00") + " mA"; // change to mA and make it a string
         }
 
         public string GetLed1CurrentText() // this figures out LED1 current
@@ -63,7 +63,7 @@ namespace MauiUSBMeadowSolar20251103
             double vA1 = AnalogVoltage[1] / 1000d; // A1 in volts
             double vA4 = AnalogVoltage[4] / 1000d; // A4 in volts
             double iA = (vA1 - vA4) / R_LED1; // current = voltage drop / 220Ω
-            return (iA * 1000d).ToString("0.00") + " mA"; // show it in mA
+            return (iA * 100d).ToString("0.00") + " mA"; // show it in mA
         }
 
         public string GetLed2CurrentText() // this figures out LED2 current

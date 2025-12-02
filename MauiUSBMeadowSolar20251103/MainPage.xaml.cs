@@ -41,7 +41,7 @@ namespace MauiUSBMeadowSolar20251103
 
         SolarCalc solarCalc = new SolarCalc(); // our other class that converts packet into voltages and currents
 
-        SolarGraphData graphData = new SolarGraphData();   // holds points for the graph
+      
 
         private readonly SolarGraphData _graphData = new();
         private readonly SolarGraphDrawable _graphDrawable;
@@ -252,16 +252,6 @@ namespace MauiUSBMeadowSolar20251103
                 // 3) update growth bar to match Unity
                 double percent = Math.Clamp(solarV / 3.3, 0.0, 1.0); // 3.3V = 100%
                 progressPlantGrowth.Progress = percent;
-
-                // 4) store a sample for the graph
-                graphData.AddSample(solarV, batteryV);
-
-                // fill in the labels with formatted text
-                labelSolarVolt.Text = solarCalc.FormatVoltage(solarCalc.AnalogVoltage[0]); // A0 solar panel
-                labelBatteryVolt.Text = solarCalc.FormatVoltage(solarCalc.AnalogVoltage[2]); // A2 battery
-                labelBatteryCurrent.Text = solarCalc.GetBatteryCurrentText();
-                labelLED1Current.Text = solarCalc.GetLed1CurrentText();
-                labelLED2Current.Text = solarCalc.GetLed2CurrentText();
 
                 WriteSolarPercentForUnity();
 
