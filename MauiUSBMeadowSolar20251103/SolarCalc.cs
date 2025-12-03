@@ -32,7 +32,7 @@ namespace MauiUSBMeadowSolar20251103
             Binary = Read4(packet, 30);  // the binary word starts at 30
         }
 
-        private int Read4(string text, int pos) // this helper reads 4 characters and turns them into a number
+        private int Read4(string text, int pos) // this reads 4 characters and turns them into a number
         {
             // if there aren’t 4 characters there, just return 0
             if (text.Length < pos + 4)
